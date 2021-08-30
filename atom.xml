@@ -3,58 +3,64 @@
   <title>DJの小站</title>
   
   <subtitle>记录生活，发现自己</subtitle>
-  <link href="http://example.com/atom.xml" rel="self"/>
+  <link href="https://hexo.djw.world/atom.xml" rel="self"/>
   
-  <link href="http://example.com/"/>
-  <updated>2021-08-30T08:03:30.086Z</updated>
-  <id>http://example.com/</id>
+  <link href="https://hexo.djw.world/"/>
+  <updated>2021-08-30T12:27:17.184Z</updated>
+  <id>https://hexo.djw.world/</id>
   
   <author>
-    <name>/#DJ</name>
+    <name>#DJ</name>
     
   </author>
   
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>article</title>
-    <link href="http://example.com/2021/08/30/article/"/>
-    <id>http://example.com/2021/08/30/article/</id>
-    <published>2021-08-30T08:03:17.000Z</published>
-    <updated>2021-08-30T08:03:30.086Z</updated>
+    <title>Hello World</title>
+    <link href="https://hexo.djw.world/archives/undefined.html"/>
+    <id>https://hexo.djw.world/archives/undefined.html</id>
+    <published>2021-08-30T04:12:57.000Z</published>
+    <updated>2021-08-30T12:27:17.184Z</updated>
     
     
-      
-      
-    <summary type="html">&lt;h1 id=&quot;Test&quot;&gt;&lt;a href=&quot;#Test&quot; class=&quot;headerlink&quot; title=&quot;Test&quot;&gt;&lt;/a&gt;Test&lt;/h1&gt;</summary>
-      
+    <summary type="html">&lt;p&gt;Welcome to &lt;a href=&quot;https://hexo.io/&quot;&gt;Hexo&lt;/a&gt;! This is your very first post. Check &lt;a href=&quot;https://hexo.io/docs/&quot;&gt;documentation&lt;/a&gt; for more info. If you get any problems when using Hexo, you can find the answer in &lt;a href=&quot;https://hexo.io/docs/troubleshooting.html&quot;&gt;troubleshooting&lt;/a&gt; or you can ask me on &lt;a href=&quot;https://github.com/hexojs/hexo/issues&quot;&gt;GitHub&lt;/a&gt;.&lt;/p&gt;</summary>
     
     
     
+    <category term="categorie_test" scheme="https://hexo.djw.world/categories/categorie-test/"/>
+    
+    
+    <category term="tag_test1" scheme="https://hexo.djw.world/tags/tag-test1/"/>
+    
+    <category term="tag_test2" scheme="https://hexo.djw.world/tags/tag-test2/"/>
     
   </entry>
   
   <entry>
-    <title>Hello World</title>
-    <link href="http://example.com/2021/08/30/hello-world/"/>
-    <id>http://example.com/2021/08/30/hello-world/</id>
-    <published>2021-08-30T04:12:57.000Z</published>
-    <updated>2021-08-30T08:55:26.235Z</updated>
+    <title>Hexo-Next主题配置</title>
+    <link href="https://hexo.djw.world/archives/f5a01bc1.html"/>
+    <id>https://hexo.djw.world/archives/f5a01bc1.html</id>
+    <published>2021-01-20T13:01:24.000Z</published>
+    <updated>2021-08-30T13:10:33.128Z</updated>
     
     
       
       
-    <summary type="html">&lt;p&gt;Welcome to &lt;a href=&quot;https://hexo.io/&quot;&gt;Hexo&lt;/a&gt;! This is your very first post. Check &lt;a href=&quot;https://hexo.io/docs/&quot;&gt;documentation&lt;/a&gt; for</summary>
+    <summary type="html">&lt;p&gt;这是一个测试文件，用来测试博客&lt;/p&gt;
+</summary>
       
     
     
     
-    <category term="categorie_test" scheme="http://example.com/categories/categorie-test/"/>
+    <category term="Hexo网站" scheme="https://hexo.djw.world/categories/Hexo%E7%BD%91%E7%AB%99/"/>
+    
+    <category term="Next主题" scheme="https://hexo.djw.world/categories/Hexo%E7%BD%91%E7%AB%99/Next%E4%B8%BB%E9%A2%98/"/>
     
     
-    <category term="tag_test1" scheme="http://example.com/tags/tag-test1/"/>
+    <category term="Hexo" scheme="https://hexo.djw.world/tags/Hexo/"/>
     
-    <category term="tag_test2" scheme="http://example.com/tags/tag-test2/"/>
+    <category term="Next" scheme="https://hexo.djw.world/tags/Next/"/>
     
   </entry>
   
