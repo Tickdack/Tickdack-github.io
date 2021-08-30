@@ -6,7 +6,7 @@
   <link href="https://hexo.djw.world/atom.xml" rel="self"/>
   
   <link href="https://hexo.djw.world/"/>
-  <updated>2021-08-30T12:27:17.184Z</updated>
+  <updated>2021-08-30T15:11:56.608Z</updated>
   <id>https://hexo.djw.world/</id>
   
   <author>
@@ -17,50 +17,24 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
-    <title>Hello World</title>
-    <link href="https://hexo.djw.world/archives/4a17b156.html"/>
-    <id>https://hexo.djw.world/archives/4a17b156.html</id>
-    <published>2021-08-30T04:12:57.000Z</published>
-    <updated>2021-08-30T12:27:17.184Z</updated>
-    
-    
-    <summary type="html">&lt;p&gt;Welcome to &lt;a href=&quot;https://hexo.io/&quot;&gt;Hexo&lt;/a&gt;! This is your very first post. Check &lt;a href=&quot;https://hexo.io/docs/&quot;&gt;documentation&lt;/a&gt; for more info. If you get any problems when using Hexo, you can find the answer in &lt;a href=&quot;https://hexo.io/docs/troubleshooting.html&quot;&gt;troubleshooting&lt;/a&gt; or you can ask me on &lt;a href=&quot;https://github.com/hexojs/hexo/issues&quot;&gt;GitHub&lt;/a&gt;.&lt;/p&gt;</summary>
-    
-    
-    
-    <category term="categorie_test" scheme="https://hexo.djw.world/categories/categorie-test/"/>
-    
-    
-    <category term="tag_test1" scheme="https://hexo.djw.world/tags/tag-test1/"/>
-    
-    <category term="tag_test2" scheme="https://hexo.djw.world/tags/tag-test2/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>Hexo-Next主题配置</title>
-    <link href="https://hexo.djw.world/archives/f5a01bc1.html"/>
-    <id>https://hexo.djw.world/archives/f5a01bc1.html</id>
-    <published>2021-01-20T13:01:24.000Z</published>
-    <updated>2021-08-30T13:10:33.128Z</updated>
+    <title>hexo常用命令</title>
+    <link href="https://hexo.djw.world/archives/33f59116.html"/>
+    <id>https://hexo.djw.world/archives/33f59116.html</id>
+    <published>2021-08-30T15:06:15.000Z</published>
+    <updated>2021-08-30T15:11:56.608Z</updated>
     
     
       
       
-    <summary type="html">&lt;p&gt;这是一个测试文件，用来测试博客&lt;/p&gt;
-</summary>
+    <summary type="html">&lt;h2 id=&quot;Hexo常用命令记录&quot;&gt;&lt;a href=&quot;#Hexo常用命令记录&quot; class=&quot;headerlink&quot; title=&quot;Hexo常用命令记录&quot;&gt;&lt;/a&gt;Hexo常用命令记录&lt;/h2&gt;&lt;h3 id=&quot;每次提交前&quot;&gt;&lt;a href=&quot;#每次提交前&quot; class=&quot;he</summary>
       
     
     
     
-    <category term="Hexo网站" scheme="https://hexo.djw.world/categories/Hexo%E7%BD%91%E7%AB%99/"/>
-    
-    <category term="Next主题" scheme="https://hexo.djw.world/categories/Hexo%E7%BD%91%E7%AB%99/Next%E4%B8%BB%E9%A2%98/"/>
+    <category term="hexo" scheme="https://hexo.djw.world/categories/hexo/"/>
     
     
-    <category term="Hexo" scheme="https://hexo.djw.world/tags/Hexo/"/>
-    
-    <category term="Next" scheme="https://hexo.djw.world/tags/Next/"/>
+    <category term="hexo" scheme="https://hexo.djw.world/tags/hexo/"/>
     
   </entry>
   
