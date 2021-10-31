@@ -1,27 +1,99 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
-    <title>hexo常用命令</title>
-    <url>/archives/33f59116.html</url>
-    <content><![CDATA[<h2 id="Hexo常用命令记录"><a href="#Hexo常用命令记录" class="headerlink" title="Hexo常用命令记录"></a>Hexo常用命令记录</h2><h3 id="每次提交前"><a href="#每次提交前" class="headerlink" title="每次提交前"></a>每次提交前</h3><ul>
-<li>hexo clean</li>
-<li>hexo g</li>
-<li>hexo s</li>
-<li>hexo d</li>
+    <title>Effective C++第二章总结概要</title>
+    <url>/archives/5d44e5a9.html</url>
+    <content><![CDATA[<h4 id="一、了解C-默默编写并调用了哪些函数："><a href="#一、了解C-默默编写并调用了哪些函数：" class="headerlink" title="一、了解C++默默编写并调用了哪些函数："></a>一、了解C++默默编写并调用了哪些函数：</h4><ol>
+<li><p>C++编译器会自动为一个空类生成8个成员函数：</p>
+<ul>
+<li>default构造函数</li>
+<li>析构函数</li>
+<li>copy构造函数</li>
+<li>copy（赋值）运算符重载</li>
+<li>取址运算符重载</li>
+<li>常量取址运算符重载</li>
+<li>移动构造函数（C++11）</li>
+<li>移动赋值运算符重载（C++11）</li>
 </ul>
-<h3 id="新建文章"><a href="#新建文章" class="headerlink" title="新建文章"></a>新建文章</h3><ul>
-<li>hexo new “这里写文章名”</li>
-</ul>
-<h3 id="新建页面"><a href="#新建页面" class="headerlink" title="新建页面"></a>新建页面</h3><ul>
-<li>hexo new page tags</li>
-</ul>
-<h3 id="文章头设置"><a href="#文章头设置" class="headerlink" title="文章头设置"></a>文章头设置</h3><figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line">---</span><br><span class="line">title: Hexo-Next主题配置	</span><br><span class="line">date: 2021-01-20 21:01:24</span><br><span class="line">categories:	</span><br><span class="line"><span class="bullet">  -</span> Hexo网站</span><br><span class="line"><span class="bullet">  -</span> Next主题</span><br><span class="line">tags: 							</span><br><span class="line"><span class="bullet">  -</span> Hexo</span><br><span class="line"><span class="bullet">  -</span> Next</span><br><span class="line">abbrlink:				</span><br><span class="line">comments: true </span><br><span class="line"><span class="section">top: true</span></span><br><span class="line"><span class="section">---</span></span><br></pre></td></tr></table></figure>
+<p>其中，当你定义了某个函数，C++便不会生成相应的成员函数，值得注意的是，<strong>从C++11起，如果一个类有析构函数，为其生成拷贝构造函数和拷贝赋值运算符的特性被弃用了。</strong></p>
+</li>
+<li><p>对于一些特殊情况，C++会拒绝生成这些成员函数，例如：reference（引用）的拷贝，base类的某个函数为private，derived类不会生成相应的函数</p>
+</li>
+</ol>
+<h4 id="二、若不想使用编译器生成的函数，就该拒绝"><a href="#二、若不想使用编译器生成的函数，就该拒绝" class="headerlink" title="二、若不想使用编译器生成的函数，就该拒绝"></a>二、若不想使用编译器生成的函数，就该拒绝</h4><p>若某个对象应具有唯一性，那对它进行copy显然是不合理的，这种情况下，自行定义或不定义copy，都没有禁止copy行为，正确的做法有两种：</p>
+<ol>
+<li><p>将不想使用但必须拥有的成员函数<strong>声明</strong>为private而不去实现它：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">houseforsale</span>&#123;</span></span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">    	<span class="built_in">houseforsale</span>(<span class="keyword">const</span> houseforsale&amp; rhs);	<span class="comment">//声明而不实现</span></span><br><span class="line">    	houseforsale&amp; <span class="keyword">operator</span> = (<span class="keyword">const</span> houseforsale&amp; rhs);</span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">    	......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>利用访问限制，定义一个base类，该类中必须具有的成员函数声明为private：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">uncopyable</span>&#123;</span></span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">    	<span class="built_in">uncopyable</span>(<span class="keyword">const</span> uncopyable&amp;);</span><br><span class="line">    	uncopyable&amp; <span class="keyword">operator</span> = (<span class="keyword">const</span> uncopyable&amp;);</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">houseforsale</span> :</span> <span class="keyword">public</span> uncopyforsale&#123;</span><br><span class="line">    ......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h4 id="三、为多态基类声明virtual析构函数"><a href="#三、为多态基类声明virtual析构函数" class="headerlink" title="三、为多态基类声明virtual析构函数"></a>三、为多态基类声明virtual析构函数</h4><ol>
+<li><p>当一个base类指针指向derived类对象时，若直接delete掉这个基类指针，会导致derived类资源未被释放，从而使得内存泄漏，故而在写希望产生多态效果的基类时，要将基类析构函数写为虚函数：</p>
+ <figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">base</span>&#123;</span></span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">     <span class="built_in">base</span>()&#123;&#125;</span><br><span class="line">     <span class="keyword">virtual</span> ~<span class="built_in">base</span>()&#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">derived</span> :</span> <span class="keyword">public</span> base&#123;</span><br><span class="line">    ......</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+<li><p>虚函数为C++运行时多态（同名的函数，不同的效果）提供了支持，其基本原理是，具有虚函数的类中，除了成员数据部分，还会放一个虚函数表指针，指向一个放置虚函数指针的虚函数表，在运行阶段，程序通过虚函数表指针，找到虚函数表，再找到相应的函数，完成多态。</p>
+</li>
+<li><p>虚函数表指针是一个指针，是具有大小的，在32位系统中指针大小为32位bit（4byte），64位系统中为64位bit（8byte），因此，虽然虚函数很强大，但不必使每个类都有虚函数，通常做法是：当一个类中必不可少有一个虚函数时，才声明虚析构函数。</p>
+</li>
+</ol>
+<h4 id="四、不要使析构函数抛出异常"><a href="#四、不要使析构函数抛出异常" class="headerlink" title="四、不要使析构函数抛出异常"></a>四、不要使析构函数抛出异常</h4><p>C++不喜欢析构函数吐出异常，比如</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Weight</span>&#123;</span></span><br><span class="line">    ~<span class="built_in">Weight</span>()&#123;...&#125;</span><br><span class="line">&#125;</span><br><span class="line">std::vector&lt;Weight&gt; v;</span><br></pre></td></tr></table></figure>
+
+<p>当v销毁时，它会销毁vector中的每一个Weight，但若有两个Weight在销毁时都抛出异常，会使程序终止或导致不明确行为，所以析构函数的异常应当自我消化，在捕捉到异常时，应当终止程序或记录异常采用鸵鸟策略，绝不应当在析构函数中抛出：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">example</span>&#123;</span></span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">    	Dbconnection db;</span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">    	~<span class="built_in">example</span>()&#123;</span><br><span class="line">        	<span class="keyword">try</span>&#123;db.<span class="built_in">close</span>();&#125;</span><br><span class="line">        	<span class="built_in"><span class="keyword">catch</span></span>(...)&#123;</span><br><span class="line">            	std::<span class="built_in">abort</span>();	<span class="comment">//使不正常程序终止</span></span><br><span class="line">            					<span class="comment">//或记录析构失败，继续执行</span></span><br><span class="line">        	&#125;</span><br><span class="line">    	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>另外，作为软件开发人员，我们可将析构中可能包含异常的行为写成一个函数，供用户调用，使得用户去处理这个异常（甩锅给客户），若析构时发现用户未调用该函数，则在析构时处理。</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">example</span>&#123;</span></span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">    	Dbconnection db;</span><br><span class="line">    	<span class="keyword">bool</span> isclosed = <span class="literal">false</span>;</span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">    	<span class="function"><span class="keyword">void</span> <span class="title">closedb</span><span class="params">()</span></span>&#123;			<span class="comment">//写给客户</span></span><br><span class="line">            db.<span class="built_in">close</span>();</span><br><span class="line">            isclosed = <span class="literal">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    	~<span class="built_in">example</span>()&#123;</span><br><span class="line">            <span class="keyword">if</span>(!isclosed)&#123;</span><br><span class="line">                <span class="keyword">try</span>&#123;db.<span class="built_in">close</span>();&#125;</span><br><span class="line">        		<span class="built_in"><span class="keyword">catch</span></span>(...)&#123;</span><br><span class="line">            		std::<span class="built_in">abort</span>();	<span class="comment">//使不正常程序终止</span></span><br><span class="line">            		<span class="comment">//或 记录析构失败，继续执行</span></span><br><span class="line">        		&#125;</span><br><span class="line">            &#125;</span><br><span class="line">    	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="五、不在构造或析构过程中调用virtual函数"><a href="#五、不在构造或析构过程中调用virtual函数" class="headerlink" title="五、不在构造或析构过程中调用virtual函数"></a>五、不在构造或析构过程中调用virtual函数</h4><ol>
+<li><p>举例游戏场景：</p>
+ <figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Game</span> &#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="built_in">Game</span>();</span><br><span class="line">    ~<span class="built_in">Game</span>();</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">Log</span><span class="params">()</span> <span class="keyword">const</span> </span>= <span class="number">0</span>;</span><br><span class="line">&#125;;</span><br><span class="line">Game::<span class="built_in">Game</span>()&#123;</span><br><span class="line">        <span class="built_in">Log</span>();</span><br><span class="line">        std::cout &lt;&lt; <span class="string">&quot;Game() Log()&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">    &#125;;</span><br><span class="line">Game::~<span class="built_in">Game</span>()&#123;</span><br><span class="line">        <span class="built_in">Log</span>();</span><br><span class="line">        std::cout &lt;&lt; <span class="string">&quot;~Game() Log()&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">    &#125;;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Kill</span> :</span> <span class="keyword">public</span> Game &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">Log</span><span class="params">()</span> <span class="keyword">const</span> <span class="keyword">override</span> </span>&#123;	<span class="comment">//const override表示重写父类虚函数</span></span><br><span class="line">        std::cout &lt;&lt; <span class="string">&quot;Kill Log()&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">main</span><span class="params">(<span class="keyword">void</span>)</span></span>&#123;</span><br><span class="line">    Kill a;</span><br><span class="line">    <span class="keyword">return</span> <span class="number">0</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p> 这段代码在编译时会报waning，运行时也会出错，因为是Log函数为纯虚函数，无法对它产生调用，因为在派生类构造阶段，会先调用父类构造，再调用成员对象构造，最后才是自己的成员变量构造，故而在第一阶段时，父类的构造函数调用的是它本身的纯虚函数，而不是派生类的函数</p>
+<p> 同样的道理也适用于析构函数，众所周知，析构函数和构造函数的顺序是反着来的</p>
+</li>
+<li><p>更奇怪的情况下，可能会让人摸不着头脑：</p>
+ <figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Game</span>&#123;</span></span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">     <span class="built_in">Game</span>()&#123;<span class="built_in">init</span>();&#125;</span><br><span class="line">     <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">Log</span><span class="params">()</span> <span class="keyword">const</span> </span>= <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">     <span class="function"><span class="keyword">void</span> <span class="title">init</span><span class="params">()</span></span>&#123;</span><br><span class="line">            <span class="built_in">Log</span>();</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Kill</span> :</span> <span class="keyword">public</span> Game &#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">    <span class="function"><span class="keyword">virtual</span> <span class="keyword">void</span> <span class="title">Log</span><span class="params">()</span> <span class="keyword">const</span> <span class="keyword">override</span> </span>&#123;	<span class="comment">//const override表示重写父类虚函数</span></span><br><span class="line">        std::cout &lt;&lt; <span class="string">&quot;Kill Log()&quot;</span> &lt;&lt; std::endl;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+<p> 对于这段代码，未经优化的编译器不会有任何反应（据说Visual Studio集成了整本Effective C++给出的建议），然而最终运行时，会报错：Kill调用了错误版本的Log()函数，使人在风中凌乱……所以，<strong>一定要确定自己的代码中，构造和析构函数中不调用虚函数</strong></p>
+</li>
+<li><p>那么，我们想实现类似的功能该怎么办呢，一个好的方法将原函数写为非虚的，在构造时传参到Base类中</p>
+</li>
+</ol>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Game</span>&#123;</span></span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">    	<span class="built_in">Game</span>(<span class="keyword">const</span> string&amp; loginfo)&#123;</span><br><span class="line">            <span class="built_in">Log</span>(loginfo);</span><br><span class="line">        &#125;</span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">    	<span class="built_in">Log</span>(<span class="keyword">const</span> string&amp; loginfo)&#123;....&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Kill</span> :</span> <span class="keyword">public</span> Game&#123;</span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">    	<span class="built_in">Kill</span>(parameters):<span class="built_in">Game</span>(<span class="built_in">createinfo</span>(parameters))&#123;...&#125;</span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">    	<span class="function"><span class="keyword">static</span> <span class="keyword">const</span> string&amp; <span class="title">createinfo</span><span class="params">(parameters)</span></span>&#123;...&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="六、operator-“-“-的重载"><a href="#六、operator-“-“-的重载" class="headerlink" title="六、operator “ = “ 的重载"></a>六、operator “ = “ 的重载</h4><ol>
+<li><p>为了使自定义重载运算符和基本类型运算符保持一致，我们通常使” = “返回一个当前对象的reference to *this</p>
+</li>
+<li><p>对于一个含指针的类Weight，我们对它的赋值函数进行三次改版。</p>
+<p>先是Weight类：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Weight</span>&#123;</span></span><br><span class="line">    Bitmap *pb;</span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">    	Weight&amp; <span class="keyword">operator</span> = (<span class="keyword">const</span> Weight&amp; rhs);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>第一版赋值函数：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">//version_1</span></span><br><span class="line">Weight&amp; Weight::<span class="keyword">operator</span> = (<span class="keyword">const</span> Weight&amp; rhs)&#123;</span><br><span class="line">    <span class="keyword">delete</span> pb;</span><br><span class="line">    pb = <span class="keyword">new</span> <span class="built_in">Bitmap</span>(*rhs.pb);</span><br><span class="line">    <span class="keyword">return</span> *<span class="keyword">this</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这种情况下，当<code>lhs == rhs</code>时，逻辑上，这个函数已经出错了！Bitmap将指向一个已被删除的对象！由此引出第二版赋值构造函数：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">//version_2</span></span><br><span class="line">Weight&amp; Weight::<span class="keyword">operator</span> = (<span class="keyword">const</span> Weight&amp; rhs)&#123;</span><br><span class="line">    <span class="keyword">if</span>(rhs == *<span class="keyword">this</span>)	<span class="keyword">return</span> *<span class="keyword">this</span>;</span><br><span class="line">    <span class="keyword">delete</span> pb;</span><br><span class="line">    pb = <span class="keyword">new</span> <span class="built_in">Bitmap</span>(*rhs.pb);</span><br><span class="line">    <span class="keyword">return</span> *<span class="keyword">this</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个版本中，我们对于传入参数和自身进行了比较，有效地避免了<code>rhs == lhs</code>的问题。</p>
+<p>但是，这个新版本依旧有问题：若是new Bitmap时出现异常（可能由于内存不够，可能由于copy抛出异常），由于先删除了pb后赋值，对象内的指针会指向一块被删除的Bitmap，为此，出现了第三版：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">//version_3</span></span><br><span class="line">Weight&amp; Weight::<span class="keyword">operator</span> = (<span class="keyword">const</span> Weight&amp; rhs)&#123;</span><br><span class="line">    <span class="keyword">if</span>(rhs == *<span class="keyword">this</span>)	<span class="keyword">return</span> *<span class="keyword">this</span>;</span><br><span class="line">    Bitmap *tpb = pb;</span><br><span class="line">    pb = <span class="keyword">new</span> <span class="built_in">Bitmap</span>(*rhs.pb);</span><br><span class="line">    <span class="keyword">delete</span> tpb;</span><br><span class="line">    <span class="keyword">return</span> *<span class="keyword">this</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这一版就没有上述两版的问题了，它既有证同测试，又有防异常行为，prefect version达成了！</p>
+<p>对于性能提升上，Ecpp还给出了一个新的版本：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">swap</span><span class="params">(Weight &amp;rhs)</span></span>&#123;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br><span class="line">Weight&amp; Weight::<span class="keyword">operator</span> = (Weight rhs)&#123;</span><br><span class="line">    <span class="built_in">swap</span>(rhs);</span><br><span class="line">    <span class="keyword">return</span> *<span class="keyword">this</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>它利用了传值时会调用拷贝构造这一行为，其思想和移动很像，这应该是“移动”的前身了！</strong></p>
+</li>
+</ol>
+<h4 id="七、复制对象时切勿忘记复制它的每个部分"><a href="#七、复制对象时切勿忘记复制它的每个部分" class="headerlink" title="七、复制对象时切勿忘记复制它的每个部分"></a>七、复制对象时切勿忘记复制它的每个部分</h4><ol>
+<li>copy系函数应当确保复制<strong>对象内所有的成员变量</strong>和<strong>所有Base类的成分</strong></li>
+<li>不要使copy构造函数和copy operator函数相互调用，通常将它们共通的部分写在一个函数中去调用。</li>
+</ol>
 ]]></content>
       <categories>
-        <category>hexo</category>
+        <category>C++</category>
       </categories>
       <tags>
-        <tag>hexo</tag>
+        <tag>C++</tag>
       </tags>
   </entry>
   <entry>
@@ -80,6 +152,30 @@
       </categories>
       <tags>
         <tag>C++</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>hexo常用命令</title>
+    <url>/archives/33f59116.html</url>
+    <content><![CDATA[<h2 id="Hexo常用命令记录"><a href="#Hexo常用命令记录" class="headerlink" title="Hexo常用命令记录"></a>Hexo常用命令记录</h2><h3 id="每次提交前"><a href="#每次提交前" class="headerlink" title="每次提交前"></a>每次提交前</h3><ul>
+<li>hexo clean</li>
+<li>hexo g</li>
+<li>hexo s</li>
+<li>hexo d</li>
+</ul>
+<h3 id="新建文章"><a href="#新建文章" class="headerlink" title="新建文章"></a>新建文章</h3><ul>
+<li>hexo new “这里写文章名”</li>
+</ul>
+<h3 id="新建页面"><a href="#新建页面" class="headerlink" title="新建页面"></a>新建页面</h3><ul>
+<li>hexo new page tags</li>
+</ul>
+<h3 id="文章头设置"><a href="#文章头设置" class="headerlink" title="文章头设置"></a>文章头设置</h3><figure class="highlight markdown"><table><tr><td class="code"><pre><span class="line">---</span><br><span class="line">title: Hexo-Next主题配置	</span><br><span class="line">date: 2021-01-20 21:01:24</span><br><span class="line">categories:	</span><br><span class="line"><span class="bullet">  -</span> Hexo网站</span><br><span class="line"><span class="bullet">  -</span> Next主题</span><br><span class="line">tags: 							</span><br><span class="line"><span class="bullet">  -</span> Hexo</span><br><span class="line"><span class="bullet">  -</span> Next</span><br><span class="line">abbrlink:				</span><br><span class="line">comments: true </span><br><span class="line"><span class="section">top: true</span></span><br><span class="line"><span class="section">---</span></span><br></pre></td></tr></table></figure>
+]]></content>
+      <categories>
+        <category>hexo</category>
+      </categories>
+      <tags>
+        <tag>hexo</tag>
       </tags>
   </entry>
 </search>
