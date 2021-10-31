@@ -24,4 +24,62 @@
         <tag>hexo</tag>
       </tags>
   </entry>
+  <entry>
+    <title>Effective C++第一章总结概要</title>
+    <url>/archives/e18b7eda.html</url>
+    <content><![CDATA[<h4 id="一、将C-视为一个语言联邦"><a href="#一、将C-视为一个语言联邦" class="headerlink" title="一、将C++视为一个语言联邦"></a>一、将C++视为一个语言联邦</h4><p><code>C++ ≈ &#123;C, C with class, Template C++, STL&#125;</code>，对于内置类型而言，Cpp采用以值传递的方式更高效，而对于用户自定义类型而言，一般采用以常引用传递的方式更好（这其中的成因与底层指令相关，所以学一学汇编是很重要的），在使用CPP哪个部分时，遵循那个部分。</p>
+<h4 id="二、尽量不要使用C中的define语句"><a href="#二、尽量不要使用C中的define语句" class="headerlink" title="二、尽量不要使用C中的define语句"></a>二、尽量不要使用C中的define语句</h4><p>尽量不要使用<code>define</code>，尽管<code>define</code>很高效，但他只是忠实地替换了原始代码，会造成很多问题比如：</p>
+<ol>
+<li><p>定义<code>#define ABC 114514</code>时，由于编译器在<strong>预处理阶段</strong>移走了<code>ABC</code>而用114514替代，之前ABC的标记已经没有了，若是出了问题，打印的错误信息很可能是<code>error: 114514……</code>，而不是<code>error ABC...</code>，在带项目中难以定位，建议用<code>const int ABC = 114514</code>替代，出错也好debug</p>
+</li>
+<li><p>考虑使用宏：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">define</span> max(a, b) (a) &gt; (b) ? (a) : (b)</span></span><br><span class="line"><span class="keyword">int</span> a = <span class="number">5</span>, b = <span class="number">0</span>;</span><br><span class="line"><span class="built_in">max</span>(++a, b);		<span class="comment">//a会自增两次</span></span><br><span class="line"><span class="built_in">max</span>(++a, b + <span class="number">10</span>);	<span class="comment">//a自增一次</span></span><br></pre></td></tr></table></figure>
+<p>这显然非常扯淡，一般而言，使用inline函数模板代替宏，更安全，更省心</p>
+<blockquote>
+<p>tips: 内联函数与宏的区别</p>
+<p>1、内联函数在编译时展开，而宏在预编译时展开</p>
+<p>2、在编译的时候，内联函数直接被嵌入到目标代码中去，而宏只是一个简单的文本替换。</p>
+<p>3、内联函数可以进行诸如类型安全检查、语句是否正确等编译功能，宏不具有这样的功能。</p>
+<p>4、宏不是函数，而inline是函数</p>
+<p>5、宏在定义时要小心处理宏参数，一般用括号括起来，否则容易出现二义性。而内联函数不会出现二义性。</p>
+<p>6、inline可以不展开，宏一定要展开。因为inline指示对编译器来说，只是一个建议，编译器可以选择忽略该建议，不对该函数进行展开。</p>
+<p>7、宏定义在形式上类似于一个函数，但在使用它时，仅仅只是做预处理器符号表中的简单替换，因此它不能进行<strong>参数有效性的检测</strong>，也就不能享受C++编译器严<strong>格类型检查</strong>的好处，另外它的<strong>返回值也不能被强制转换</strong>为可转换的合适的类型，这样，它的使用就存在着一系列的隐患和局限性。</p>
+</blockquote>
+</li>
+<li><p>想在编译期使用宏定义类似的功能，可使用<code>enum hack</code>大法，enum的行为很像加了限制区间的宏定义</p>
+</li>
+</ol>
+<h4 id="三、尽可能多地使用const："><a href="#三、尽可能多地使用const：" class="headerlink" title="三、尽可能多地使用const："></a>三、尽可能多地使用const：</h4><p>区别<code>const int *</code>和<code>int * const</code>，前者修饰的是指向的东西，后者修饰的是指针</p>
+<p>对于STL迭代器，其规则与主语言又有所不同：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> vector&lt;<span class="keyword">int</span>&gt;::iterator iter;	<span class="comment">//相当于int * const，迭代器指向不能改变</span></span><br><span class="line">vector&lt;<span class="keyword">int</span>&gt;::const_iterator citer;	<span class="comment">//相当于const int *，不能通过迭代器修改指向的元素</span></span><br></pre></td></tr></table></figure>
+
+<p>对于运算符重载，最好将运算数声明为<code>const-reference</code>，并在重载时，考虑与基本类型运算符行为保持一致。</p>
+<p>const对象只能调用const成员函数，这是符合const语义（不修改）的，同理，const成员函数内部只能访问成员变量，但无法修改，也无法访问普通成员函数（普通成员函数可能修改成员变量）</p>
+<ol>
+<li><p>将一些函数，变量加const可帮助编译器检查错误用法</p>
+</li>
+<li><p>const和non-const版本的函数除了返回以外无差别时，可使用强转令non-const调用const</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const</span> <span class="keyword">char</span>&amp; <span class="keyword">operator</span>[](std::<span class="keyword">size_t</span> position) <span class="keyword">const</span>&#123;</span><br><span class="line">    ........</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">char</span>&amp; <span class="keyword">operator</span>[](std::<span class="keyword">size_t</span> position) &#123;</span><br><span class="line">    <span class="keyword">return</span> </span><br><span class="line">        <span class="keyword">const_cast</span>&lt;<span class="keyword">char</span> &amp;&gt;(</span><br><span class="line">        <span class="keyword">static_cast</span>&lt;<span class="keyword">const</span> A&amp;&gt;(*<span class="keyword">this</span>)</span><br><span class="line">        	[position]</span><br><span class="line">        );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+<h4 id="四、确定对象使用前被初始化："><a href="#四、确定对象使用前被初始化：" class="headerlink" title="四、确定对象使用前被初始化："></a>四、确定对象使用前被初始化：</h4><ol>
+<li><p>为确保对象的行为如你预计般地可靠，必须确保每个对象使用前被初始化</p>
+</li>
+<li><p>对于成员对象，通常采用初始化列表的形式构造：</p>
+ <figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">People</span></span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Society</span>&#123;</span></span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">     People p;</span><br><span class="line">     <span class="keyword">int</span> nums;</span><br><span class="line">     <span class="keyword">const</span> string rule;</span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">     <span class="built_in">Society</span>(<span class="keyword">const</span> People&amp; tp, <span class="keyword">const</span> string&amp; s, <span class="keyword">int</span> n):</span><br><span class="line">         <span class="built_in">p</span>(tp),</span><br><span class="line">         <span class="built_in">rule</span>(s)</span><br><span class="line">        &#123;nums = n&#125;;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p> 通常，写为初始化列表的成员对象直接调用自己的构造函数进行构造，而采若用赋值的方式，其行为往往是使用default构造函数构造成员对象，再使用重载的”=”进行赋值。</p>
+<p> 类型为引用和常量的成员变量必须使用初始化列表，不能采用赋值的形式</p>
+<p> 对于一些初始化和赋值表现一样好的成员，可考虑写一个init函数，供多个不同的构造函数使用</p>
+</li>
+<li><p>对于non-local static对象，即多个文件（作用域，对象……）共享的静态对象，我们一般采用单例模式</p>
+ <figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">test</span>&#123;</span></span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">    	<span class="built_in">test</span>()&#123;&#125;</span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">    	<span class="function">test&amp; <span class="title">get_test</span><span class="params">()</span></span>&#123;</span><br><span class="line">            <span class="keyword">static</span> test t;</span><br><span class="line">            <span class="keyword">return</span> t;</span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></li>
+</ol>
+]]></content>
+      <categories>
+        <category>C++</category>
+      </categories>
+      <tags>
+        <tag>C++</tag>
+      </tags>
+  </entry>
 </search>
