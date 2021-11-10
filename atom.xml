@@ -6,7 +6,7 @@
   <link href="https://hexo.djw.world/atom.xml" rel="self"/>
   
   <link href="https://hexo.djw.world/"/>
-  <updated>2021-11-03T03:09:17.257Z</updated>
+  <updated>2021-11-10T05:10:48.129Z</updated>
   <id>https://hexo.djw.world/</id>
   
   <author>
@@ -17,11 +17,34 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>Effective C++ 设计与声明</title>
+    <link href="https://hexo.djw.world/archives/88db60c2.html"/>
+    <id>https://hexo.djw.world/archives/88db60c2.html</id>
+    <published>2021-11-10T05:07:21.000Z</published>
+    <updated>2021-11-10T05:10:48.129Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h4 id=&quot;一、让接口容易被正确使用，不易被误用&quot;&gt;&lt;a href=&quot;#一、让接口容易被正确使用，不易被误用&quot; class=&quot;headerlink&quot; title=&quot;一、让接口容易被正确使用，不易被误用&quot;&gt;&lt;/a&gt;一、让接口容易被正确使用，不易被误用&lt;/h4&gt;&lt;ol&gt;
+&lt;li&gt;</summary>
+      
+    
+    
+    
+    <category term="Effective C++" scheme="https://hexo.djw.world/categories/Effective-C/"/>
+    
+    
+    <category term="C++" scheme="https://hexo.djw.world/tags/C/"/>
+    
+  </entry>
+  
+  <entry>
     <title>Effective C++ 资源管理</title>
     <link href="https://hexo.djw.world/archives/8a9f90a1.html"/>
     <id>https://hexo.djw.world/archives/8a9f90a1.html</id>
     <published>2021-11-03T02:44:00.000Z</published>
-    <updated>2021-11-03T03:09:17.257Z</updated>
+    <updated>2021-11-03T03:09:40.638Z</updated>
     
     
       
@@ -66,7 +89,7 @@
     <link href="https://hexo.djw.world/archives/e18b7eda.html"/>
     <id>https://hexo.djw.world/archives/e18b7eda.html</id>
     <published>2021-10-31T08:12:00.000Z</published>
-    <updated>2021-11-03T02:56:06.999Z</updated>
+    <updated>2021-11-03T06:20:43.506Z</updated>
     
     
       
