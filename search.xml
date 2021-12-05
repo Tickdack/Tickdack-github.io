@@ -59,6 +59,167 @@
       </tags>
   </entry>
   <entry>
+    <title>Effective C++ 关于实现</title>
+    <url>/archives/51196fbd.html</url>
+    <content><![CDATA[<h4 id="一、尽可能延后变量定义式的出现时间"><a href="#一、尽可能延后变量定义式的出现时间" class="headerlink" title="一、尽可能延后变量定义式的出现时间"></a>一、尽可能延后变量定义式的出现时间</h4><ol>
+<li><p>我们通过一个实例来进行说明，考虑一个对密码进行编码解码的函数</p>
+ <figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function">std::string <span class="title">encode</span><span class="params">(<span class="keyword">const</span> std::string&amp; rawpassword)</span></span>&#123;</span><br><span class="line">    <span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line">    string encoded_password;</span><br><span class="line">    <span class="keyword">if</span>(rawpassword.<span class="built_in">length</span>() &lt; min_limit)&#123;</span><br><span class="line">        <span class="function">throe <span class="title">logic_error</span><span class="params">(<span class="string">&quot;Password is too short.&quot;</span>)</span></span>;</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">return</span> encoded_password;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p> 若是<code>rawpassword</code>的长度较小因而使得控制流提前抛出异常，那对于<code>encoded_password</code>构造函数的调用就是一种浪费，所以，我们可以写：</p>
+ <figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function">std::string <span class="title">encode</span><span class="params">(<span class="keyword">const</span> std::string&amp; rawpassword)</span></span>&#123;</span><br><span class="line">    <span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line">    <span class="keyword">if</span>(rawpassword.<span class="built_in">length</span>() &lt; min_limit)&#123;</span><br><span class="line">        <span class="function">throe <span class="title">logic_error</span><span class="params">(<span class="string">&quot;Password is too short.&quot;</span>)</span></span>;</span><br><span class="line">    &#125;</span><br><span class="line">    string encoded_password;</span><br><span class="line">    ...</span><br><span class="line">    encoded_password = rawpassword;</span><br><span class="line">    <span class="built_in">encrypted</span>(encoded_password);</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">return</span> encoded_password;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p> 更受欢迎的做法是以<code>password</code>为初值，跳过<code>default</code>构造和赋值：</p>
+ <figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function">std::string <span class="title">encode</span><span class="params">(<span class="keyword">const</span> std::string&amp; rawpassword)</span></span>&#123;</span><br><span class="line">    <span class="keyword">using</span> <span class="keyword">namespace</span> std;</span><br><span class="line">    <span class="keyword">if</span>(rawpassword.<span class="built_in">length</span>() &lt; min_limit)&#123;</span><br><span class="line">        <span class="function">throe <span class="title">logic_error</span><span class="params">(<span class="string">&quot;Password is too short.&quot;</span>)</span></span>;</span><br><span class="line">    &#125;</span><br><span class="line">    ...</span><br><span class="line">    <span class="function">string <span class="title">encoded_password</span><span class="params">(rawpassword)</span></span>;</span><br><span class="line">    <span class="built_in">encrypted</span>(encoded_password);</span><br><span class="line">    ...</span><br><span class="line">    <span class="keyword">return</span> encoded_password;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p> 所以，<strong>我们在定义变量时，不但应延后定义变量直到不得不使用它为止，甚至应当尝试延后定义直到能够给它初值实参为止。</strong></p>
+</li>
+<li><p>对于一个循环结构内变量的初始化，我们应当评估两种方式：</p>
+ <figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">//plan A</span></span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; ++i)&#123;</span><br><span class="line">    Widget w;</span><br><span class="line">    ....</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//plan B</span></span><br><span class="line">Widget w;</span><br><span class="line"><span class="keyword">for</span>(<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; n; ++i)&#123;</span><br><span class="line">    w = ...;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p> 来看看A和B的消耗：</p>
+<ul>
+<li><p>A ：n组构造 + n组析构</p>
+</li>
+<li><p>B ：一组构造 + 一组析构 + n组赋值</p>
+</li>
+</ul>
+<p> 由于B的做法使得<code>w</code>的作用域更大，这导致了B的可维护性和易理解性不强，故而除非（1）你需要使某段代码的效率极高，（2）B的消耗远小于A，否则，应当常用A使得程序更为清晰</p>
+</li>
+</ol>
+<h4 id="二、尽量少做转型"><a href="#二、尽量少做转型" class="headerlink" title="二、尽量少做转型"></a>二、尽量少做转型</h4><p>这里先来补充一下Cpp的转型。</p>
+<p>Cpp有三种转型风格：</p>
+<ol>
+<li><p>C风格的转型：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line">(T)expression;			<span class="comment">//将expression转型为T</span></span><br></pre></td></tr></table></figure></li>
+<li><p>函数风格的转型：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="built_in">T</span>(expression);			<span class="comment">//将expression转型为T</span></span><br></pre></td></tr></table></figure></li>
+<li><p>C++提供的四种新式转型</p>
+<p>上述两种转型方式虽然合法，且在C编程中常用，但新式转型往往更为受欢迎，因为它们很容易被程序员和编译器识别，在带project中十分有用</p>
+<p>四种新式转型如下：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">const_cast</span>&lt;T&gt;(expression);			<span class="comment">//常量性转除，从常量 ---&gt; 非常量</span></span><br><span class="line"><span class="keyword">dynamic_cast</span>&lt;T&gt;(expression);		<span class="comment">//安全地向下转型，用于类继承层次间的指针或引用转换</span></span><br><span class="line"><span class="keyword">reinterpret_cast</span>&lt;T&gt;(expression);	<span class="comment">//强制按该类型的二进制规则翻译过来，逐个bit去解释它</span></span><br><span class="line"><span class="keyword">static_cast</span>&lt;T&gt;(expression);			<span class="comment">//通用的普通转型</span></span><br></pre></td></tr></table></figure></li>
+</ol>
+<p>   使用<code>static_cast</code>可以抵消<code>explicit</code>：</p>
+<figure class="highlight cc"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span>&#123;</span></span><br><span class="line">    <span class="keyword">private</span>: </span><br><span class="line">        <span class="keyword">int</span> num;</span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">        <span class="function"><span class="keyword">explicit</span> <span class="title">A</span><span class="params">(<span class="keyword">int</span> a)</span>:num(a)&#123;</span>&#125;;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">func</span><span class="params">(A a)</span></span>;</span><br><span class="line"><span class="built_in">func</span>(<span class="number">15</span>); 					<span class="comment">//error，explicit阻止这一行为</span></span><br><span class="line"><span class="built_in">func</span>(<span class="built_in">A</span>(<span class="number">15</span>));				<span class="comment">//ok，既可以解释成调用构造，又可以解释成调用函数风格强转</span></span><br><span class="line"><span class="built_in">func</span>(<span class="keyword">static_cast</span>&lt;A&gt;(<span class="number">15</span>));	 <span class="comment">//ok，static可以抵消explicit</span></span><br></pre></td></tr></table></figure>
+
+<p>在子类中使用父类函数 / 成员的正确方式是：</p>
+<figure class="highlight cc"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">parent</span>&#123;</span></span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">dosomething</span><span class="params">()</span></span>&#123;...&#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">child</span> :</span> <span class="keyword">public</span> parent&#123;</span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">        <span class="function"><span class="keyword">void</span> <span class="title">func</span><span class="params">()</span></span>&#123;</span><br><span class="line">            parent::<span class="built_in">dosomething</span>();	<span class="comment">//ok，正确的调用方式</span></span><br><span class="line">            <span class="keyword">static_cast</span>&lt;parent&gt;(*<span class="keyword">this</span>).<span class="built_in">dosomething</span>(); <span class="comment">//error，这里实际上是调用static_cast生成的临时对象</span></span><br><span class="line">                                                  <span class="comment">//若该函数与外界无交互，不影响，反之影响挺大，故不该这样写</span></span><br><span class="line">        &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对于<code>dynamic_cast</code>，尽量以其他方式替代它，因为<code>dynamic_cast</code>要满足动态性，需要更多的时间开销，常用的替代方法有：</p>
+<ul>
+<li>直接使用子类的指针（引用），不适用多态</li>
+<li>将父类考虑得面面俱到，一些不适用的方法只写声明不写定义</li>
+</ul>
+<h4 id="三、避免返回handles指向对象内部"><a href="#三、避免返回handles指向对象内部" class="headerlink" title="三、避免返回handles指向对象内部"></a>三、避免返回handles指向对象内部</h4><ol>
+<li><p>成员变量的封装性最多等于“返回其reference”的函数的访问级别。</p>
+</li>
+<li><p>返回一个代表对象内部数据的<code>handle</code>在一些情况下很方便，但这降低了对象的封装性。</p>
+</li>
+<li><p>返回refenrence可能会<strong>造成指针 / 引用 虚吊</strong>，经典情况如<strong>STL迭代器失效</strong>，这是由于handle比它所指对象更长寿造成的，应尽力避免这种情况。</p>
+</li>
+</ol>
+<h4 id="四、为“异常安全”而努力"><a href="#四、为“异常安全”而努力" class="headerlink" title="四、为“异常安全”而努力"></a>四、为“异常安全”而努力</h4><ol>
+<li><p>这里来补充一下C++中的异常</p>
+<p>异常是指程序的控制流不能按预期工作且出错，这时程序会因异常而终止，C++使用<code>try</code>，<code>catch</code>以及<code>throw</code>来应对这一情况：</p>
+   <figure class="highlight cc"><table><tr><td class="code"><pre><span class="line"><span class="keyword">try</span>&#123;</span><br><span class="line">    .... 				<span class="comment">// 本该运行的代码</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in"><span class="keyword">catch</span></span>(execption)&#123;</span><br><span class="line">    .... 				<span class="comment">// 捕捉到异常execption后的应对策略</span></span><br><span class="line">&#125;</span><br><span class="line"><span class="built_in"><span class="keyword">catch</span></span>(exception)&#123;</span><br><span class="line">    <span class="keyword">throw</span> exception;	 <span class="comment">//捕捉到一个无法处理的异常，抛出给上级函数</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>   其中<code>throw</code>关键字也可定义一个函数应当抛出的异常类型：</p>
+   <figure class="highlight cc"><table><tr><td class="code"><pre><span class="line"><span class="function">T <span class="title">func</span> <span class="params">(T param)</span> <span class="title">throw</span> <span class="params">()</span></span>;		<span class="comment">//其中为空，表示不跑出异常</span></span><br><span class="line"><span class="function">T <span class="title">func</span> <span class="params">(T param)</span> <span class="keyword">noexcept</span></span>;		<span class="comment">//C++11不抛出异常版本</span></span><br><span class="line"><span class="function">T <span class="title">func</span> <span class="params">(T param)</span> <span class="title">throw</span> <span class="params">(<span class="keyword">int</span>)</span></span>;	<span class="comment">//表示只抛出int型异常</span></span><br><span class="line"><span class="function">T <span class="title">func</span> <span class="params">(T param)</span> <span class="title">throw</span> <span class="params">(<span class="keyword">int</span>, string)</span></span>;	<span class="comment">//表示抛出int和string型的异常</span></span><br></pre></td></tr></table></figure>
+
+<p>   C++常见的异常类型如下：</p>
+<table>
+<thead>
+<tr>
+<th>异常</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td><code>std::bad_alloc</code></td>
+<td>内存分配失败</td>
+</tr>
+<tr>
+<td><code>std::bad_cast</code></td>
+<td><code>dynamic_cast</code>未通过运行时检查</td>
+</tr>
+<tr>
+<td><code>std::bad_typeid</code></td>
+<td>该异常由typeid抛出</td>
+</tr>
+<tr>
+<td><code>std::bad_exception</code></td>
+<td>如果函数的异常列表里声明了 bad_exception 异常，当函数内部抛出了异常列表中没有的异常时，都会被替换为 bad_exception 类型。</td>
+</tr>
+<tr>
+<td><code>std::logic_error</code></td>
+<td>逻辑错误</td>
+</tr>
+<tr>
+<td><code>std::runtime_error</code></td>
+<td>运行时错误</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p>注：<code>typeid</code>的作用与<code>decltype</code>相似，都可以得到一个变量或者表达式的类型，不同的是，<code>typeid</code>方法得到的类型不能用于定义变量，可以用来进行类型的比较。</p>
+</blockquote>
+</li>
+<li><p>异常安全性</p>
+<p>   当因异常被抛出而导致程序暂时终止时，带有异常安全性的函数应当：</p>
+<ol>
+<li>不泄露任何资源</li>
+<li>不允许数据遭到破坏</li>
+</ol>
+<p>   对于第一条，我们遵循RAII的原则，以对象管理数据，使得系统清理栈上资源而调用栈上对象的析构函数时，正好释放资源。</p>
+<p>   而对于第二条不许数据遭到破坏，异常安全函数提供以下三个保证之一：</p>
+<ol>
+<li>基本承诺，异常被抛出时，程序的任何事物都是一个合法状态</li>
+<li>强烈保证，如果异常被抛出，程序内的任何事物保证被复位</li>
+<li>不抛掷保证，一旦有异常被抛出，绝对是很严重的错误，T func (T param) throw ();</li>
+</ol>
+<p>   对于异常安全性，有一个小tip可以导致强烈保证，它就是——<strong>copy and swap</strong>，我们先为要修改的对象提供一个副本，再在副本上做一切必要的修改，最终通过一个<strong>不抛出异常的<code>swap</code>函数</strong>对副本和本体进行置换，这样做，即使副本处产生异常，也不影响到本体，从而使异常安全性得到强烈保证。</p>
+<p>   下面举个异常安全相关的例子：</p>
+   <figure class="highlight cc"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Menu</span>&#123;</span></span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">      <span class="function"><span class="keyword">void</span> <span class="title">changebackground</span><span class="params">(std::istream&amp; imgsrc)</span></span>;</span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">      Mutex mutex;</span><br><span class="line">      Image* bgimage;</span><br><span class="line">      <span class="keyword">int</span> imagechanges;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">//不提供异常安全保证版本，当new出现错误，毫无安全可言</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Menu::changebackground</span><span class="params">(std::istream&amp; imgsrc)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="built_in">lock</span>(&amp;mutex);</span><br><span class="line">    <span class="keyword">delete</span> bgimage;</span><br><span class="line">    ++imagechanges;</span><br><span class="line">    bgimage = <span class="keyword">new</span> <span class="built_in">Image</span>(imgsrc);</span><br><span class="line">    <span class="built_in">unlock</span>(&amp;mutex);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//基本保证版本吗，new出现错误时，输入流已经被读走，所以是基本保证</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Menu</span>&#123;</span></span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">          std::shared_ptr&lt;Image&gt; bgimage;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Menu::changebackground</span><span class="params">(std::istream&amp; imgsrc)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="function">Lock <span class="title">ml</span><span class="params">(&amp;mutex)</span></span>;	<span class="comment">//RAII保证锁被释放</span></span><br><span class="line">    bgimage.<span class="built_in">reset</span>(<span class="keyword">new</span> <span class="built_in">Image</span>(imgsrc));</span><br><span class="line">    ++imagechanges;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//强烈保证版本，copy &amp; swap</span></span><br><span class="line"><span class="keyword">typedef</span> <span class="class"><span class="keyword">struct</span> <span class="title">PMImpl</span>&#123;</span></span><br><span class="line">    std::shared_ptr&lt;Image&gt; bgimage;</span><br><span class="line">    <span class="keyword">int</span> imagechanges;</span><br><span class="line">&#125;PMImpl;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Menu</span>&#123;</span></span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">      Mutex mutex;</span><br><span class="line">      std::shared_ptr&lt;PMImpl&gt; pImpl;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">Menu::changebackground</span><span class="params">(std::istream&amp; imgsrc)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">using</span> std::swap;</span><br><span class="line">    <span class="function">Lock <span class="title">ml</span><span class="params">(&amp;mutex)</span></span>;</span><br><span class="line">    <span class="function">std::shared_ptr&lt;PMImpl&gt; <span class="title">pnew</span><span class="params">(<span class="keyword">new</span> PMImpl(*pImpl))</span></span>;	<span class="comment">//deep-copy</span></span><br><span class="line">    pnew-&gt;bgImage.<span class="built_in">reset</span>(<span class="keyword">new</span> <span class="built_in">Image</span>(imgsrc));</span><br><span class="line">    ++pnew-&gt;imagechanges;</span><br><span class="line">    <span class="built_in">swap</span>(pImpl, pnew);								<span class="comment">//none-exception swap</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>   最后，不必一定给予强烈保证：</p>
+   <figure class="highlight cc"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">func</span><span class="params">()</span></span>&#123;</span><br><span class="line">    <span class="built_in">f1</span>();</span><br><span class="line">    <span class="built_in">f2</span>();</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>   根据木桶原理，若func调用的函数无强烈保证，则很难让他成为一个有强烈保证的函数，而即使所有被调用的函数都有强烈保证，但<code>f2()</code>出现异常后复位，<code>f1()</code>没有出现异常，这依旧不是强烈保证，所以不必强求。</p>
+</li>
+</ol>
+<h4 id="五、了解inline的里里外外"><a href="#五、了解inline的里里外外" class="headerlink" title="五、了解inline的里里外外"></a>五、了解inline的里里外外</h4><ol>
+<li>inline的思想是将函数直接插入到程序中，使得一些<strong>本体执行比进行函数调用开销小</strong>的函数更有效率地运行（继承了宏的思想）</li>
+<li>因为inline会将函数代码插入程序，所以可能会导致代码膨胀，使编译器产出更多的机器码，从而导致cache命中率下降导致效率降低</li>
+<li>一个最佳方法时遵循 <a href="https://baike.baidu.com/item/%E5%B8%95%E7%B4%AF%E6%89%98%E6%B3%95%E5%88%99">2 - 8定律</a>，先使用不带inline版本的函数 ——&gt; 找出决定程序性能的20% ——&gt; 用各种奇技淫巧优化它</li>
+</ol>
+<h4 id="将文件编译依赖关系降到最低"><a href="#将文件编译依赖关系降到最低" class="headerlink" title="将文件编译依赖关系降到最低"></a>将文件编译依赖关系降到最低</h4><ol>
+<li>支持“编译依存性最小化”的一般构想是，使得调用程序依赖于类型的“声明式”，而非“定义式”</li>
+</ol>
+<p>  定义式的<code>class</code>实现如下所示：</p>
+  <figure class="highlight cc"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span>&#123;</span></span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">      std::string name;</span><br><span class="line">      Date brithday;</span><br><span class="line">      Adress adress;</span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">      <span class="built_in">Person</span>(<span class="keyword">const</span> std::string&amp; name, <span class="keyword">const</span> Date&amp; brithday, <span class="keyword">const</span> Adress&amp; adress);</span><br><span class="line">      <span class="function">std::string <span class="title">getName</span><span class="params">()</span> <span class="keyword">const</span></span>;</span><br><span class="line">      <span class="function">Date <span class="title">getBrithday</span><span class="params">()</span> <span class="keyword">const</span></span>;</span><br><span class="line">      <span class="function">Adress <span class="title">getAdress</span><span class="params">()</span> <span class="keyword">const</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>  直接将定义式放入头文件<code>person.h</code>，然后需要这个类时<code>include</code>这个头文件显然是很<code>navie</code>的想法，搭嘎，这么做的代价又是什么呢？</p>
+<p>  代价就是——我们之后对该class进行版本迭代更新时，所有<code>include</code>它的文件都需要重新编译！</p>
+<p>  <strong>对于这一问题，最佳解决策略是将定义式隐藏在背后，有两种方法可以达到这个目的，一是<code>PIMPL</code>大法，即将Person分割成两部分，一个负责提供接口（声明式），一个负责实现（定义式），这样做可以使文件编译依赖关系降到最低：</strong></p>
+  <figure class="highlight cc"><table><tr><td class="code"><pre><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;personpimpl.h&gt;</span></span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">PersonImpl</span>&#123;</span></span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">      std::string name;</span><br><span class="line">      Date brithday;</span><br><span class="line">      Adress adress;</span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">      <span class="built_in">Person</span>(<span class="keyword">const</span> std::string&amp; name, <span class="keyword">const</span> Date&amp; brithday, <span class="keyword">const</span> Adress&amp; adress);</span><br><span class="line">      <span class="function">std::string <span class="title">getName</span><span class="params">()</span> <span class="keyword">const</span></span>;</span><br><span class="line">      <span class="function">Date <span class="title">getBrithday</span><span class="params">()</span> <span class="keyword">const</span></span>;</span><br><span class="line">      <span class="function">Adress <span class="title">getAdress</span><span class="params">()</span> <span class="keyword">const</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;person.h&gt;</span></span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Person</span>&#123;</span></span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">      std::shared_ptr&lt;PersonImpl&gt; Pimpl;</span><br><span class="line">      <span class="keyword">public</span>:</span><br><span class="line">      <span class="built_in">Person</span>(<span class="keyword">const</span> std::string&amp; name, <span class="keyword">const</span> Date&amp; brithday, <span class="keyword">const</span> Adress&amp; adress):</span><br><span class="line">          <span class="built_in">Pimpl</span>(std::make_shared&lt;PersonImpl&gt;(<span class="keyword">const</span> std::string&amp; name, <span class="keyword">const</span> Date&amp; brithday, <span class="keyword">const</span> Adress&amp; adress))</span><br><span class="line">            &#123;&#125;</span><br><span class="line">      <span class="function">std::string <span class="title">getName</span><span class="params">()</span> <span class="keyword">const</span></span>&#123;</span><br><span class="line">            <span class="keyword">return</span> Pimpl -&gt; <span class="built_in">getName</span>();</span><br><span class="line">        &#125;</span><br><span class="line">    ...</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>  这样做，重构PersonImpl时就不需要重新编译程序文件了，只需要重新编译PersonImpl所在的 <code>.h</code>文件。</p>
+<p>  另一个解决问题的方法是，编写一个抽象基类来描述规范，使用抽象基类指针来完成操作（多态），这种方法的经典实践如工厂模式：</p>
+  <figure class="highlight cc"><table><tr><td class="code"><pre><span class="line"><span class="comment">//产品的基类</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Product</span>&#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">   <span class="comment">//基类中的纯虚函数</span></span><br><span class="line">  <span class="function"><span class="keyword">virtual</span> <span class="keyword">int</span> <span class="title">operation</span><span class="params">(<span class="keyword">int</span> a, <span class="keyword">int</span> b)</span> </span>= <span class="number">0</span>;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">//产品的子类Add</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Product_Add</span> :</span> <span class="keyword">public</span> Product&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="function"><span class="keyword">int</span> <span class="title">operation</span><span class="params">(<span class="keyword">int</span> a, <span class="keyword">int</span> b)</span></span>&#123;</span><br><span class="line">      <span class="keyword">return</span> a + b;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">//产品的子类Mul</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Product_Mul</span> :</span> <span class="keyword">public</span> Product&#123;</span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="function"><span class="keyword">int</span> <span class="title">operation</span><span class="params">(<span class="keyword">int</span> a, <span class="keyword">int</span> b)</span></span>&#123;</span><br><span class="line">      <span class="keyword">return</span> a * b;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br><span class="line"><span class="comment">//工厂</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Factory</span>&#123;</span></span><br><span class="line"><span class="keyword">public</span>:</span><br><span class="line">  <span class="function">Product* <span class="title">Create</span><span class="params">(<span class="keyword">int</span> i)</span></span>&#123;</span><br><span class="line">      <span class="built_in"><span class="keyword">switch</span></span> (i)&#123;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">1</span>:</span><br><span class="line">          <span class="keyword">return</span> <span class="keyword">new</span> Product_Add;</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">case</span> <span class="number">2</span>:</span><br><span class="line">          <span class="keyword">return</span> <span class="keyword">new</span> Product_Mul;</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">      <span class="keyword">default</span>:</span><br><span class="line">          <span class="keyword">break</span>;</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li><p>Pimpl大法会使得为每次访问增加间接性，且为每个对象增加了一个指针的大小，而<code>interface class</code>则为每次函数调用多付出了一个间接跳跃的成本（因为它的成员函数都是虚函数），但并不意味着不去使用它们，要大胆去用</p>
+</li>
+<li><p>程序库头文件应当以”完全且仅有声明式“的形式呈现给用户，这对是否涉及<code>template</code>都适用</p>
+</li>
+</ol>
+]]></content>
+      <categories>
+        <category>Effective C++</category>
+      </categories>
+      <tags>
+        <tag>C++</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Effective C++ 构造/析构/赋值运算</title>
     <url>/archives/5d44e5a9.html</url>
     <content><![CDATA[<h4 id="一、了解C-默默编写并调用了哪些函数："><a href="#一、了解C-默默编写并调用了哪些函数：" class="headerlink" title="一、了解C++默默编写并调用了哪些函数："></a>一、了解C++默默编写并调用了哪些函数：</h4><ol>
@@ -155,80 +316,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Effective C++ 资源管理</title>
-    <url>/archives/8a9f90a1.html</url>
-    <content><![CDATA[<p>本章提出的不少思想和方法，在目前的modern C++中已经得到了实践和改进，因此，曾思考过是否要写本章笔记，后来觉得，了解一下来龙去脉也挺好的，所以有了本次总结。</p>
-<h4 id="一、以对象管理资源"><a href="#一、以对象管理资源" class="headerlink" title="一、以对象管理资源"></a>一、以对象管理资源</h4><p>所谓资源，便是使用之后须还给系统，C++常见的资源类型有：动态申请的内存，文件描述符，互斥锁，数据库连接，网络socket连接等等，由于可能存在的各种问题，推荐以对象管理资源的形式对资源进行管理。</p>
-<ol>
-<li><p>为何以对象管理资源</p>
-<p>通常情况下，我们可能会这样写一个程序：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Example</span>&#123;</span>&#125;;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">func</span><span class="params">()</span></span>&#123;</span><br><span class="line">    Example *ptre = <span class="keyword">new</span> Example;</span><br><span class="line">    ......</span><br><span class="line">    <span class="keyword">delete</span> ptre;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>但这样的内存管理具有一定缺陷，若是控制流由于异常，过早的return，或是被魔改而提前退出而抵达不了<code>delete ptre</code>语句，我们便可能将Example所保存的那部分资源泄露。</p>
-<p>故而，C++提出了以对象管理资源的方式，把资源放入对象中，当控制流离开func，该对象对应的析构函数便可以自动释放那些资源，这正是利用了<strong>C++析构函数自动调用机制来解决问题（即系统自动释放栈内资源）</strong>。</p>
-</li>
-<li><p>以对象管理资源</p>
-<p>以对象管理资源应当遵循两个基本守则：</p>
-<ul>
-<li>获得资源后立刻放入对象</li>
-<li>管理对象调用析构函数时确保释放资源</li>
-</ul>
-</li>
-<li><p>C++的智能指针</p>
-<p>遵循以对象管理资源的理念，C++提供了几个智能指针：<code>auto_ptr</code>，<code>shared_ptr</code>，<code>unique_ptr</code>以及<code>weak_ptr</code>。</p>
-<p>首先须说明的是，<code>auto_ptr</code>由于并不符合copy语义，而更像是移动语义，所以C++1x中已被<code>unique_ptr</code>代替，接下来康康auto和 shared两种ptr的用法。</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">//智能指针使用示例</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;memroy&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">//auto_ptr</span></span><br><span class="line"><span class="function">std::auto_ptr&lt;<span class="keyword">int</span>&gt; <span class="title">ptr</span><span class="params">(<span class="keyword">new</span> <span class="keyword">int</span>(<span class="number">2</span>))</span></span>;</span><br><span class="line">std::auto_ptr&lt;<span class="keyword">int</span>&gt; ptr2 = ptr;		<span class="comment">//ptr为null，根本不符合copy语义</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//shared_ptr</span></span><br><span class="line">std::shared_ptr&lt;<span class="keyword">int</span>&gt; ptr = std::make_shared&lt;<span class="keyword">int</span>&gt;(<span class="number">200</span>);</span><br><span class="line">std::cout &lt;&lt; *ptr &lt;&lt; std::endl;		<span class="comment">//输出200，隐式转换</span></span><br><span class="line">std::shared_ptr&lt;<span class="keyword">int</span>&gt; ptr2 = ptr;	<span class="comment">//二者指向同一个对象，计数+1</span></span><br><span class="line">std::cout &lt;&lt; ptr.<span class="built_in">use_count</span>() &lt;&lt; std::endl;	<span class="comment">//获得计数</span></span><br><span class="line">ptr2.<span class="built_in">reset</span>();						<span class="comment">//指向空，此时ptr计数为1</span></span><br><span class="line"><span class="keyword">int</span> * t = ptr.<span class="built_in">get</span>();				<span class="comment">//从shared_ptr中获取资源，不推荐这么做</span></span><br><span class="line"><span class="comment">//当ptr使用reset或本段代码结束时，自动调用shared_ptr的delete，结束</span></span><br></pre></td></tr></table></figure></li>
-</ol>
-<h4 id="二、在资源管理类中当心copying行为"><a href="#二、在资源管理类中当心copying行为" class="headerlink" title="二、在资源管理类中当心copying行为"></a>二、在资源管理类中当心copying行为</h4><p>   当一个RAII对象被复制，常见有几种可能可供选择：</p>
-<ul>
-<li>禁止复制</li>
-<li>对底层资源实行引用计数并写好它的deleter（删除器）</li>
-<li>复制底部资源</li>
-<li>转移资源拥有权</li>
-</ul>
-<p>   其中，auto_ptr总是会销毁对象，而其余智能指针可以自定义删除器，带自定义删除器的shared_ptr写法如下：</p>
-   <figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">FileCloser</span> &#123;</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">operator</span><span class="params">()</span><span class="params">(FILE* fp)</span> <span class="keyword">const</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (fp != <span class="literal">nullptr</span>) &#123;</span><br><span class="line">            <span class="built_in">fclose</span>(fp);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;   </span><br><span class="line">&#125;;  </span><br><span class="line"><span class="function">std::shared_ptr&lt;FILE, FileCloser&gt; <span class="title">sptr</span><span class="params">(fopen(<span class="string">&quot;test_file.txt&quot;</span>, <span class="string">&quot;w&quot;</span>))</span></span>;</span><br></pre></td></tr></table></figure>
-
-<p>   使用lambda表达式定义删除器：</p>
-   <figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function">std::shared_ptr&lt;FILE&gt; <span class="title">sptr</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    fopen(<span class="string">&quot;test_file.txt&quot;</span>, <span class="string">&quot;w&quot;</span>), [](FILE* fp) &#123;</span></span></span><br><span class="line"><span class="params"><span class="function">        std::cout &lt;&lt; <span class="string">&quot;close &quot;</span> &lt;&lt; fp &lt;&lt; std::endl;</span></span></span><br><span class="line"><span class="params"><span class="function">        fclose(fp);</span></span></span><br><span class="line"><span class="params"><span class="function">    &#125;)</span></span>;</span><br></pre></td></tr></table></figure>
-
-<h4 id="三、在资源管理类中提供对原始对象的访问"><a href="#三、在资源管理类中提供对原始对象的访问" class="headerlink" title="三、在资源管理类中提供对原始对象的访问"></a>三、在资源管理类中提供对原始对象的访问</h4><p>因为历史原因，总会有API的参数不是智能指针，这时需要我们对于RAII管理的原始资源提供访问。</p>
-<p>一种方式是使用get函数，这种方法较为繁琐，但更为安全，另一种方式是采用（）运算符重载来提供隐式转换，但有时会造成程序员写出不安全的代码，比如：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">//C API:</span></span><br><span class="line"><span class="function">FontHandle <span class="title">getFont</span><span class="params">()</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">releaseFont</span><span class="params">(FontHandle fh)</span></span>;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Font</span>&#123;</span></span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">    	FontHandle f;</span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">    	<span class="function"><span class="keyword">explicit</span> <span class="title">Font</span><span class="params">(FontHandle fh)</span>:f(fh)&#123;</span>&#125;</span><br><span class="line">    	~<span class="built_in">Font</span>()&#123;<span class="built_in">releaseFont</span>(f);&#125;</span><br><span class="line">    	<span class="function"><span class="keyword">operator</span> <span class="title">FontHandle</span><span class="params">()</span> <span class="keyword">const</span></span>&#123;<span class="keyword">return</span> f;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//use</span></span><br><span class="line"><span class="function">Font <span class="title">f1</span><span class="params">(getFont())</span></span>;</span><br><span class="line">FontHandle f2 = f1;	</span><br><span class="line"><span class="comment">//本意是Font f2 = f1，但写错成了FontHandle f2 = f1，编译器不会发出警告，然而若是f1被释放，f2则会虚吊</span></span><br></pre></td></tr></table></figure>
-
-<p>值得一提的是，在C++1x的智能指针中，同时提供了隐式转换和显示转换，但自己写RAII类时，一般采用显式的get方法写更佳。</p>
-<h4 id="四、成对地采用new，delete"><a href="#四、成对地采用new，delete" class="headerlink" title="四、成对地采用new，delete"></a>四、成对地采用new，delete</h4><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">int</span> *ptr = <span class="keyword">new</span> <span class="built_in"><span class="keyword">int</span></span>(<span class="number">10</span>);</span><br><span class="line"><span class="keyword">delete</span> ptr;</span><br><span class="line"><span class="keyword">int</span> *ptr = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">100</span>];</span><br><span class="line"><span class="keyword">delete</span> []ptr;</span><br></pre></td></tr></table></figure>
-
-<p>因为new出的空间排布很可能是这样的：</p>
-<p>单对象： [Object]</p>
-<p>多对象：[计数n]|[Object | Object|……]</p>
-<p>调用单对象的new，多对象的delete []，可能会delete掉其它一些部分，造成错误；调用多对象的new T[n]，单对象的delete，会导致内存没被释放完，造成内存泄漏</p>
-<h4 id="五、以独立语句将newed对象放入指针"><a href="#五、以独立语句将newed对象放入指针" class="headerlink" title="五、以独立语句将newed对象放入指针"></a>五、以独立语句将newed对象放入指针</h4><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">handle</span><span class="params">(std::auto_ptr&lt;<span class="keyword">int</span>&gt;, <span class="keyword">int</span>)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">nowsum</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="built_in">handle</span>(std::auto_ptr&lt;<span class="keyword">int</span>&gt;(<span class="keyword">new</span> <span class="built_in"><span class="keyword">int</span></span>(<span class="number">10</span>)), <span class="built_in">nowsum</span>());</span><br></pre></td></tr></table></figure>
-
-<p>上述的handle使用起来可能会造成内存泄漏，因为编译器要调用handle函数，需要执行三个操作：</p>
-<ul>
-<li>nowsum()</li>
-<li>new int(10)</li>
-<li>调用auto_ptr构造函数</li>
-</ul>
-<p>我们无法确定编译器怎样完成这一过程，可能因为O3优化，它生成了如下步骤的代码：</p>
-<ol>
-<li>new int(10)</li>
-<li>nowsum()</li>
-<li>调用auto_ptr函数</li>
-</ol>
-<p>这种情况下，如果nowsum阶段异常，就铁定造成资源泄露，故而需要<strong>以独立语句将newed对象放入智能指针</strong>：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function">std::auto_ptr&lt;<span class="keyword">int</span>&gt; <span class="title">ptr</span><span class="params">(<span class="keyword">new</span> <span class="keyword">int</span>(<span class="number">10</span>))</span></span>;</span><br><span class="line"><span class="built_in">handle</span>(ptr, <span class="built_in">nowsum</span>());</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Effective C++</category>
-      </categories>
-      <tags>
-        <tag>C++</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Effective C++ 设计与声明</title>
     <url>/archives/88db60c2.html</url>
     <content><![CDATA[<h4 id="一、让接口容易被正确使用，不易被误用"><a href="#一、让接口容易被正确使用，不易被误用" class="headerlink" title="一、让接口容易被正确使用，不易被误用"></a>一、让接口容易被正确使用，不易被误用</h4><ol>
@@ -273,7 +360,7 @@
 
 <p>当以值传入一个Student时，由于这里进行值传递，printinfo中的p会被构造成一个Person对象，因此打印出的信息只有一部分，这是不合适的，而若使用const Person&amp; 作为参数，这种情况下由于多态的存在，是完全OK的。</p>
 <h4 id="四、必须返回临时对象时，使用值传递"><a href="#四、必须返回临时对象时，使用值传递" class="headerlink" title="四、必须返回临时对象时，使用值传递"></a>四、必须返回临时对象时，使用值传递</h4><p><strong>若是某个函数需要返回一个函数内进行处理的local对象，一般采用值传递</strong>，因为函数的local对象会在函数调用完毕时自动被回收（操作系统管理栈，程序员管理堆），而若local对象是在堆上的，则你必须考虑它的delete以防止资源泄漏，比如：</p>
-<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">complex</span>&#123;</span></span><br><span class="line">    <span class="comment">//resource</span></span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">    	<span class="function"><span class="keyword">friend</span> complex&amp; <span class="keyword">operator</span> * <span class="title">mult</span><span class="params">(<span class="keyword">const</span> complex&amp; a, <span class="keyword">const</span> complex&amp; b)</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function">complex&amp; <span class="keyword">operator</span> * <span class="title">mult</span><span class="params">(<span class="keyword">const</span> complex&amp; a, <span class="keyword">const</span> complex&amp; b)</span></span>&#123;</span><br><span class="line">    complex* res = <span class="keyword">new</span> complex;</span><br><span class="line">    <span class="comment">//some precess</span></span><br><span class="line">    <span class="keyword">return</span> res;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">complex <span class="title">a</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>)</span></span>;</span><br><span class="line"><span class="function">complex <span class="title">b</span><span class="params">(<span class="number">3</span>, <span class="number">4</span>)</span></span>;</span><br><span class="line"><span class="function">complex <span class="title">c</span><span class="params">(<span class="number">5</span>, <span class="number">6</span>)</span></span>;</span><br><span class="line">complex d = a * b * c;</span><br><span class="line"><span class="comment">//这种情况下，你没有合理的方法去delete掉它当中产生的指针！注意它调用了两次乘法!</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">complex</span>&#123;</span></span><br><span class="line">    <span class="comment">//resource</span></span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">    	<span class="keyword">friend</span> complex&amp; <span class="keyword">operator</span> * (<span class="keyword">const</span> complex&amp; a, <span class="keyword">const</span> complex&amp; b);</span><br><span class="line">&#125;</span><br><span class="line">complex&amp; <span class="keyword">operator</span> * (<span class="keyword">const</span> complex&amp; a, <span class="keyword">const</span> complex&amp; b)&#123;</span><br><span class="line">    complex* res = <span class="keyword">new</span> complex;</span><br><span class="line">    <span class="comment">//some precess</span></span><br><span class="line">    <span class="keyword">return</span> res;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function">complex <span class="title">a</span><span class="params">(<span class="number">1</span>, <span class="number">2</span>)</span></span>;</span><br><span class="line"><span class="function">complex <span class="title">b</span><span class="params">(<span class="number">3</span>, <span class="number">4</span>)</span></span>;</span><br><span class="line"><span class="function">complex <span class="title">c</span><span class="params">(<span class="number">5</span>, <span class="number">6</span>)</span></span>;</span><br><span class="line">complex d = a * b * c;</span><br><span class="line"><span class="comment">//这种情况下，你没有合理的方法去delete掉它当中产生的指针！注意它调用了两次乘法!</span></span><br></pre></td></tr></table></figure>
 
 <p>所以，一般情况下，从函数返回时使用pass by value</p>
 <h4 id="五、将成员变量声明为private"><a href="#五、将成员变量声明为private" class="headerlink" title="五、将成员变量声明为private"></a>五、将成员变量声明为private</h4><p>将成员变量声明为private为类提供了细微的访问控制划分，且对于用户而言，日后的改动并不影响之前的代码，private为类提供了其封装性。</p>
@@ -324,6 +411,80 @@
 <li>提供一个non-member调用member的swap，对于classes，使这个non-member成为一个全特化版本并放入std空间，对于templates，把它放入其专有空间，尽量使得代码保持一致性</li>
 <li>可能用到std::swap时，采用声明：<code>using std::swap</code>，然后正常调用它</li>
 </ol>
+]]></content>
+      <categories>
+        <category>Effective C++</category>
+      </categories>
+      <tags>
+        <tag>C++</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Effective C++ 资源管理</title>
+    <url>/archives/8a9f90a1.html</url>
+    <content><![CDATA[<p>本章提出的不少思想和方法，在目前的modern C++中已经得到了实践和改进，因此，曾思考过是否要写本章笔记，后来觉得，了解一下来龙去脉也挺好的，所以有了本次总结。</p>
+<h4 id="一、以对象管理资源"><a href="#一、以对象管理资源" class="headerlink" title="一、以对象管理资源"></a>一、以对象管理资源</h4><p>所谓资源，便是使用之后须还给系统，C++常见的资源类型有：动态申请的内存，文件描述符，互斥锁，数据库连接，网络socket连接等等，由于可能存在的各种问题，推荐以对象管理资源的形式对资源进行管理。</p>
+<ol>
+<li><p>为何以对象管理资源</p>
+<p>通常情况下，我们可能会这样写一个程序：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Example</span>&#123;</span>&#125;;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">func</span><span class="params">()</span></span>&#123;</span><br><span class="line">    Example *ptre = <span class="keyword">new</span> Example;</span><br><span class="line">    ......</span><br><span class="line">    <span class="keyword">delete</span> ptre;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>但这样的内存管理具有一定缺陷，若是控制流由于异常，过早的return，或是被魔改而提前退出而抵达不了<code>delete ptre</code>语句，我们便可能将Example所保存的那部分资源泄露。</p>
+<p>故而，C++提出了以对象管理资源的方式，把资源放入对象中，当控制流离开func，该对象对应的析构函数便可以自动释放那些资源，这正是利用了<strong>C++析构函数自动调用机制来解决问题（即系统自动释放栈内资源）</strong>。</p>
+</li>
+<li><p>以对象管理资源</p>
+<p>以对象管理资源应当遵循两个基本守则：</p>
+<ul>
+<li>获得资源后立刻放入对象</li>
+<li>管理对象调用析构函数时确保释放资源</li>
+</ul>
+</li>
+<li><p>C++的智能指针</p>
+<p>遵循以对象管理资源的理念，C++提供了几个智能指针：<code>auto_ptr</code>，<code>shared_ptr</code>，<code>unique_ptr</code>以及<code>weak_ptr</code>。</p>
+<p>首先须说明的是，<code>auto_ptr</code>由于并不符合copy语义，而更像是移动语义，所以C++1x中已被<code>unique_ptr</code>代替，接下来康康auto和 shared两种ptr的用法。</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">//智能指针使用示例</span></span><br><span class="line"><span class="meta">#<span class="meta-keyword">include</span><span class="meta-string">&lt;memroy&gt;</span></span></span><br><span class="line"></span><br><span class="line"><span class="comment">//auto_ptr</span></span><br><span class="line"><span class="function">std::auto_ptr&lt;<span class="keyword">int</span>&gt; <span class="title">ptr</span><span class="params">(<span class="keyword">new</span> <span class="keyword">int</span>(<span class="number">2</span>))</span></span>;</span><br><span class="line">std::auto_ptr&lt;<span class="keyword">int</span>&gt; ptr2 = ptr;		<span class="comment">//ptr为null，根本不符合copy语义</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//shared_ptr</span></span><br><span class="line">std::shared_ptr&lt;<span class="keyword">int</span>&gt; ptr = std::make_shared&lt;<span class="keyword">int</span>&gt;(<span class="number">200</span>);</span><br><span class="line">std::cout &lt;&lt; *ptr &lt;&lt; std::endl;		<span class="comment">//输出200，隐式转换</span></span><br><span class="line">std::shared_ptr&lt;<span class="keyword">int</span>&gt; ptr2 = ptr;	<span class="comment">//二者指向同一个对象，计数+1</span></span><br><span class="line">std::cout &lt;&lt; ptr.<span class="built_in">use_count</span>() &lt;&lt; std::endl;	<span class="comment">//获得计数</span></span><br><span class="line">ptr2.<span class="built_in">reset</span>();						<span class="comment">//指向空，此时ptr计数为1</span></span><br><span class="line"><span class="keyword">int</span> * t = ptr.<span class="built_in">get</span>();				<span class="comment">//从shared_ptr中获取资源，不推荐这么做</span></span><br><span class="line"><span class="comment">//当ptr使用reset或本段代码结束时，自动调用shared_ptr的delete，结束</span></span><br></pre></td></tr></table></figure></li>
+</ol>
+<h4 id="二、在资源管理类中当心copying行为"><a href="#二、在资源管理类中当心copying行为" class="headerlink" title="二、在资源管理类中当心copying行为"></a>二、在资源管理类中当心copying行为</h4><p>   当一个RAII对象被复制，常见有几种可能可供选择：</p>
+<ul>
+<li>禁止复制【不拷贝】</li>
+<li>对底层资源实行引用计数并写好它的deleter（删除器）【浅拷贝+计数】</li>
+<li>复制底部资源【移动】</li>
+<li>转移资源拥有权【深拷贝】</li>
+</ul>
+<p>   其中，auto_ptr总是会销毁对象，而其余智能指针可以自定义删除器，带自定义删除器的shared_ptr写法如下：</p>
+   <figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="class"><span class="keyword">struct</span> <span class="title">FileCloser</span> &#123;</span></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">operator</span><span class="params">()</span><span class="params">(FILE* fp)</span> <span class="keyword">const</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (fp != <span class="literal">nullptr</span>) &#123;</span><br><span class="line">            <span class="built_in">fclose</span>(fp);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;   </span><br><span class="line">&#125;;  </span><br><span class="line"><span class="function">std::shared_ptr&lt;FILE, FileCloser&gt; <span class="title">sptr</span><span class="params">(fopen(<span class="string">&quot;test_file.txt&quot;</span>, <span class="string">&quot;w&quot;</span>))</span></span>;</span><br></pre></td></tr></table></figure>
+
+<p>   使用lambda表达式定义删除器：</p>
+   <figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function">std::shared_ptr&lt;FILE&gt; <span class="title">sptr</span><span class="params">(</span></span></span><br><span class="line"><span class="params"><span class="function">    fopen(<span class="string">&quot;test_file.txt&quot;</span>, <span class="string">&quot;w&quot;</span>), [](FILE* fp) &#123;</span></span></span><br><span class="line"><span class="params"><span class="function">        std::cout &lt;&lt; <span class="string">&quot;close &quot;</span> &lt;&lt; fp &lt;&lt; std::endl;</span></span></span><br><span class="line"><span class="params"><span class="function">        fclose(fp);</span></span></span><br><span class="line"><span class="params"><span class="function">    &#125;)</span></span>;</span><br></pre></td></tr></table></figure>
+
+<h4 id="三、在资源管理类中提供对原始对象的访问"><a href="#三、在资源管理类中提供对原始对象的访问" class="headerlink" title="三、在资源管理类中提供对原始对象的访问"></a>三、在资源管理类中提供对原始对象的访问</h4><p>因为历史原因，总会有API的参数不是智能指针，这时需要我们对于RAII管理的原始资源提供访问。</p>
+<p>一种方式是使用get函数，这种方法较为繁琐，但更为安全，另一种方式是采用（）运算符重载来提供隐式转换，但有时会造成程序员写出不安全的代码，比如：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="comment">//C API:</span></span><br><span class="line"><span class="function">FontHandle <span class="title">getFont</span><span class="params">()</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">releaseFont</span><span class="params">(FontHandle fh)</span></span>;</span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Font</span>&#123;</span></span><br><span class="line">    <span class="keyword">private</span>:</span><br><span class="line">    	FontHandle f;</span><br><span class="line">    <span class="keyword">public</span>:</span><br><span class="line">    	<span class="function"><span class="keyword">explicit</span> <span class="title">Font</span><span class="params">(FontHandle fh)</span>:f(fh)&#123;</span>&#125;</span><br><span class="line">    	~<span class="built_in">Font</span>()&#123;<span class="built_in">releaseFont</span>(f);&#125;</span><br><span class="line">    	<span class="function"><span class="keyword">operator</span> <span class="title">FontHandle</span><span class="params">()</span> <span class="keyword">const</span></span>&#123;<span class="keyword">return</span> f;&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">//use</span></span><br><span class="line"><span class="function">Font <span class="title">f1</span><span class="params">(getFont())</span></span>;</span><br><span class="line">FontHandle f2 = f1;	</span><br><span class="line"><span class="comment">//本意是Font f2 = f1，但写错成了FontHandle f2 = f1，编译器不会发出警告，然而若是f1被释放，f2则会虚吊</span></span><br></pre></td></tr></table></figure>
+
+<p>值得一提的是，在C++1x的智能指针中，同时提供了隐式转换和显示转换，但自己写RAII类时，一般采用显式的get方法写更佳。</p>
+<h4 id="四、成对地采用new，delete"><a href="#四、成对地采用new，delete" class="headerlink" title="四、成对地采用new，delete"></a>四、成对地采用new，delete</h4><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="keyword">int</span> *ptr = <span class="keyword">new</span> <span class="built_in"><span class="keyword">int</span></span>(<span class="number">10</span>);</span><br><span class="line"><span class="keyword">delete</span> ptr;</span><br><span class="line"><span class="keyword">int</span> *ptr = <span class="keyword">new</span> <span class="keyword">int</span>[<span class="number">100</span>];</span><br><span class="line"><span class="keyword">delete</span> []ptr;</span><br></pre></td></tr></table></figure>
+
+<p>因为new出的空间排布很可能是这样的：</p>
+<p>单对象： [Object]</p>
+<p>多对象：[计数n]|[Object | Object|……]</p>
+<p>调用单对象的new，多对象的delete []，可能会delete掉其它一些部分，造成错误；调用多对象的new T[n]，单对象的delete，会导致内存没被释放完，造成内存泄漏</p>
+<h4 id="五、以独立语句将newed对象放入指针"><a href="#五、以独立语句将newed对象放入指针" class="headerlink" title="五、以独立语句将newed对象放入指针"></a>五、以独立语句将newed对象放入指针</h4><figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">handle</span><span class="params">(std::auto_ptr&lt;<span class="keyword">int</span>&gt;, <span class="keyword">int</span>)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">int</span> <span class="title">nowsum</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line"><span class="built_in">handle</span>(std::auto_ptr&lt;<span class="keyword">int</span>&gt;(<span class="keyword">new</span> <span class="built_in"><span class="keyword">int</span></span>(<span class="number">10</span>)), <span class="built_in">nowsum</span>());</span><br></pre></td></tr></table></figure>
+
+<p>上述的handle使用起来可能会造成内存泄漏，因为编译器要调用handle函数，需要执行三个操作：</p>
+<ul>
+<li>nowsum()</li>
+<li>new int(10)</li>
+<li>调用auto_ptr构造函数</li>
+</ul>
+<p>我们无法确定编译器怎样完成这一过程，可能因为O3优化，它生成了如下步骤的代码：</p>
+<ol>
+<li>new int(10)</li>
+<li>nowsum()</li>
+<li>调用auto_ptr函数</li>
+</ol>
+<p>这种情况下，如果nowsum阶段异常，就铁定造成资源泄露，故而需要<strong>以独立语句将newed对象放入智能指针</strong>：</p>
+<figure class="highlight cpp"><table><tr><td class="code"><pre><span class="line"><span class="function">std::auto_ptr&lt;<span class="keyword">int</span>&gt; <span class="title">ptr</span><span class="params">(<span class="keyword">new</span> <span class="keyword">int</span>(<span class="number">10</span>))</span></span>;</span><br><span class="line"><span class="built_in">handle</span>(ptr, <span class="built_in">nowsum</span>());</span><br></pre></td></tr></table></figure>
+
 ]]></content>
       <categories>
         <category>Effective C++</category>
