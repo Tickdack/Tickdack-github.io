@@ -6,7 +6,7 @@
   <link href="https://hexo.djw.world/atom.xml" rel="self"/>
   
   <link href="https://hexo.djw.world/"/>
-  <updated>2021-12-05T13:37:00.264Z</updated>
+  <updated>2021-12-17T13:56:11.900Z</updated>
   <id>https://hexo.djw.world/</id>
   
   <author>
@@ -17,11 +17,33 @@
   <generator uri="https://hexo.io/">Hexo</generator>
   
   <entry>
+    <title>Effective C++ 继承与面向对象设计</title>
+    <link href="https://hexo.djw.world/archives/cf1c50a1.html"/>
+    <id>https://hexo.djw.world/archives/cf1c50a1.html</id>
+    <published>2021-12-17T13:45:54.000Z</published>
+    <updated>2021-12-17T13:56:11.900Z</updated>
+    
+    
+      
+      
+    <summary type="html">&lt;h4 id=&quot;一、确定public继承塑造出is-a关系&quot;&gt;&lt;a href=&quot;#一、确定public继承塑造出is-a关系&quot; class=&quot;headerlink&quot; title=&quot;一、确定public继承塑造出is-a关系&quot;&gt;&lt;/a&gt;一、确定public继承塑造出is-a关系&lt;/</summary>
+      
+    
+    
+    
+    <category term="Effective C++" scheme="https://hexo.djw.world/categories/Effective-C/"/>
+    
+    
+    <category term="C++" scheme="https://hexo.djw.world/tags/C/"/>
+    
+  </entry>
+  
+  <entry>
     <title>Effective C++ 关于实现</title>
     <link href="https://hexo.djw.world/archives/51196fbd.html"/>
     <id>https://hexo.djw.world/archives/51196fbd.html</id>
     <published>2021-12-05T13:23:28.000Z</published>
-    <updated>2021-12-05T13:37:00.264Z</updated>
+    <updated>2021-12-13T14:57:58.330Z</updated>
     
     
       
@@ -44,7 +66,7 @@
     <link href="https://hexo.djw.world/archives/88db60c2.html"/>
     <id>https://hexo.djw.world/archives/88db60c2.html</id>
     <published>2021-11-10T05:07:21.000Z</published>
-    <updated>2021-12-03T13:43:13.266Z</updated>
+    <updated>2021-12-13T14:21:14.397Z</updated>
     
     
       
